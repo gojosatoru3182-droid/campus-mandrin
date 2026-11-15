@@ -50,6 +50,4 @@ I need to survive on campus - food, delivery, library, dorm. So I focused on wor
 - Add a "quiz me" mode for words I keep forgetting
 - Add more canteen words - I already know I'll forget "no coriander"
 
----
 
-I'm not in China yet, but I'm preparing like I am. If I get selected, at least I won't starve on day 1.
