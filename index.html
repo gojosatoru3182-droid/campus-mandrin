@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Mandarin - my survival app</title>
+  <style>
+    :root {
+      /* i picked this orange because red felt too aggressive lol */
+      --primary: #e85d3d;
+      --primary-dark: #c94a2e;
+      --bg: #fdf6f0;
+      --card-bg: #ffffff;
+      --text: #222222;
+      --muted: #7a7a7a;
+      --success: #2f9e5f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px; }
+    header { text-align: center; margin-bottom: 16px; max-width: 500px; }
+    header h1 { font-size: 1.75rem; color: var(--primary); margin-bottom: 6px; }
+    header p { color: var(--muted); font-size: 0.95rem; }
+    .tabs { display: flex; background: #f0e8e2; padding: 4px; border-radius: 12px; margin-bottom: 24px; width: 100%; max-width: 420px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-weight: 600; color: var(--muted); cursor: pointer; }
+    .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .page-section { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+    .page-section.active { display: flex; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; width: 100%; }
+    select, button, input { padding: 10px 14px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.95rem; background: white; }
+    button { cursor: pointer; }
+    button.primary { background: var(--primary); color: white; border: none; font-weight: 600; }
+    button.primary:hover { background: var(--primary-dark); }
+    button.success { background: var(--success); color: white; border: none; font-weight: 600; }
+    button.mastered-btn.active { background: var(--success); color: white; border-color: var(--success); }
+    .stats { margin-bottom: 16px; font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+    .card-container { width: 100%; height: 250px; perspective: 1000px; margin-bottom: 20px; cursor: pointer; }
+    .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s; }
+    .card.flipped { transform: rotateY(180deg); }
+    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; border: 1px solid #e5e7eb; }
+    .card-back { transform: rotateY(180deg); background: #fffaf9; }
+    .badge { position: absolute; top: 16px; left: 16px; font-size: 0.75rem; background: #ffe8e0; color: var(--primary); padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+    .english-word { font-size: 1.5rem; font-weight: 700; }
+    .hint { position: absolute; bottom: 16px; font-size: 0.8rem; color: var(--muted); }
+    .hanzi { font-size: 2.8rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+    .pinyin { font-size: 1.15rem; font-weight: 600; margin-bottom: 14px; color: var(--muted); }
+    .audio-btn { background: #f3f4f6; border: none; padding: 8px 14px; border-radius: 999px; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+    .nav-buttons { display: flex; gap: 12px; width: 100%; justify-content: space-between; }
+    .nav-buttons button { flex: 1; }
+    .translator-box { width: 100%; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
+    .translator-box input { width: 100%; }
+    .result-card { margin-top: 16px; padding: 18px; background: #fffaf9; border: 1px dashed var(--primary); border-radius: 12px; text-align: center; display: none; flex-direction: column; align-items: center; gap: 10px; }
+    .result-card.visible { display: flex; }
+    .saved-list { width: 100%; margin-top: 24px; }
+    .saved-list h3 { font-size: 1rem; margin-bottom: 10px; }
+    .saved-item { background: white; padding: 12px 14px; border-radius: 10px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .delete-btn { background: #ffe8e0; color: var(--primary); border: none; padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; }
+    footer { margin-top: auto; padding-top: 32px; text-align: center; font-size: 0.85rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Campus Mandarin</h1>
+    <p>words i actually need so i don't starve / get lost in China</p>
+    <p style="font-size:0.8rem; margin-top:6px; color:#a8a8a8;">day 1 in china me: *points at menu and hopes for the best*</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-study" onclick="switchPage('study')">Flashcards</button>
+    <button class="tab-btn" id="tab-translate" onclick="switchPage('translate')">Translator</button>
+  </div>
+
+  <div class="page-section active" id="page-study">
+    <div class="controls">
+      <select id="categoryFilter" onchange="filterCards()">
+        <option value="All">All</option>
+        <option value="Greetings">Greetings</option>
+        <option value="Campus">Campus</option>
+        <option value="Food">Food - most important tbh</option>
+        <option value="My Saved Words">My Saved Words</option>
+      </select>
+      <button id="masterBtn" class="mastered-btn" onclick="toggleMastered()">Got it ✓</button>
+    </div>
+    <div class="stats" id="statsText">Card 1 of 6 • Mastered: 0</div>
+    <div class="card-container" onclick="flipCard()">
+      <div class="card" id="flashcard">
+        <div class="card-face card-front">
+          <span class="badge" id="cardCategory">Category</span>
+          <div class="english-word" id="englishText">Hello</div>
+          <div class="hint">tap to flip</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="hanzi" id="hanziText">你好</div>
+          <div class="pinyin" id="pinyinText">Nǐ hǎo</div>
+          <button class="audio-btn" onclick="speakText(currentCardHanzi(), event)">🔊 Listen</button>
+        </div>
+      </div>
+    </div>
+    <div class="nav-buttons">
+      <button onclick="prevCard()">← Back</button>
+      <button class="primary" onclick="nextCard()">Next →</button>
+    </div>
+  </div>
+
+  <div class="page-section" id="page-translate">
+    <div class="translator-box">
+      <label style="font-weight:600; font-size:0.9rem;">What do you need to say?</label>
+      <input type="text" id="englishInput" placeholder="e.g., no spicy, please, where is my delivery?" />
+      <button class="primary" id="translateBtn" onclick="translatePhrase()">Translate</button>
+      <div class="result-card" id="translationResult">
+        <div class="hanzi" id="translatedHanzi" style="font-size:2.2rem;"></div>
+        <input type="text" id="pinyinInput" placeholder="add pinyin if you know it" style="font-size:0.85rem; text-align:center;" />
+        <div style="display:flex; gap:8px; width:100%; justify-content:center;">
+          <button class="audio-btn" onclick="speakText(latestTranslation.hanzi, event)">🔊 Listen</button>
+          <button class="success" onclick="saveNewWord()">+ Save to my deck</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="saved-list">
+      <h3>My Saved Words (<span id="savedCount">0</span>)</h3>
+      <div id="savedWordsContainer">
+        <p style="font-size:0.85rem; color:var(--muted);">stuff you saved will show up here + in flashcards</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>made by me, for me, because google translate fails me at the canteen</footer>
+
+  <script>
+    // my starter words - not textbook words, stuff i actually said in week 1
+    // TODO: add more canteen words, i keep forgetting "no onion"
+    const baseVocabulary = [
+      { id: 1, category: "Greetings", english: "Hello", hanzi: "你好", pinyin: "Nǐ hǎo" },
+      { id: 2, category: "Greetings", english: "Thank you", hanzi: "谢谢", pinyin: "Xièxie" },
+      { id: 3, category: "Campus", english: "Library", hanzi: "图书馆", pinyin: "Túshūguǎn" },
+      { id: 4, category: "Campus", english: "Where is my delivery?", hanzi: "我的快递在哪？", pinyin: "Wǒ de kuàidì zài nǎ?" },
+      { id: 5, category: "Food", english: "No spicy, please", hanzi: "不要辣，谢谢", pinyin: "Bú yào là, xièxie" },
+      { id: 6, category: "Food", english: "How much is this?", hanzi: "这个多少钱？", pinyin: "Zhège duōshao qián?" }
+    ];
+
+    let savedWords = JSON.parse(localStorage.getItem('campus_saved') || '[]');
+    let mastered = new Set(JSON.parse(localStorage.getItem('campus_mastered') || '[]'));
+    let currentList = [...baseVocabulary];
+    let currentIndex = 0;
+    let latestTranslation = { hanzi: "", english: "" };
+
+    function getTodayLabel() {
+      return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); // e.g. "15 Nov"
+    }
+
+    function getAllCards() {
+      return [...baseVocabulary, ...savedWords];
+    }
+
+    function switchPage(page) {
+      document.getElementById('page-study').classList.toggle('active', page === 'study');
+      document.getElementById('page-translate').classList.toggle('active', page === 'translate');
+      document.getElementById('tab-study').classList.toggle('active', page === 'study');
+      document.getElementById('tab-translate').classList.toggle('active', page === 'translate');
+    }
+
+    function filterCards() {
+      const cat = document.getElementById('categoryFilter').value;
+      const all = getAllCards();
+      currentList = cat === 'All' ? all : all.filter(c => c.category === cat);
+      if (cat === 'My Saved Words') currentList = [...savedWords];
+      currentIndex = 0;
+      showCard();
+    }
+
+    function showCard() {
+      if (currentList.length === 0) {
+        document.getElementById('englishText').textContent = "No words here yet - go save some!";
+        document.getElementById('cardCategory').textContent = "Empty";
+        document.getElementById('hanziText').textContent = "空";
+        document.getElementById('pinyinText').textContent = "kōng";
+        document.getElementById('statsText').textContent = "Card 0 of 0";
+        return;
+      }
+      const card = currentList[currentIndex];
+      document.getElementById('englishText').textContent = card.english;
+      document.getElementById('cardCategory').textContent = card.category + (card.date ? " • " + card.date : "");
+      document.getElementById('hanziText').textContent = card.hanzi;
+      document.getElementById('pinyinText').textContent = card.pinyin;
+      document.getElementById('flashcard').classList.remove('flipped');
+      document.getElementById('statsText').textContent = `Card ${currentIndex + 1} of ${currentList.length} • Mastered: ${mastered.size}`;
+      document.getElementById('masterBtn').classList.toggle('active', mastered.has(card.id));
+      document.getElementById('masterBtn').textContent = mastered.has(card.id) ? "★ Mastered!" : "Got it ✓";
+    }
+
+    function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+    function nextCard() { if (currentList.length === 0) return; currentIndex = (currentIndex + 1) % currentList.length; showCard(); }
+    function prevCard() { if (currentList.length === 0) return; currentIndex = (currentIndex - 1 + currentList.length) % currentList.length; showCard(); }
+    function currentCardHanzi() { return currentList[currentIndex]?.hanzi || ""; }
+
+    function toggleMastered() {
+      if (!currentList.length) return;
+      const id = currentList[currentIndex].id;
+      if (mastered.has(id)) mastered.delete(id); else mastered.add(id);
+      localStorage.setItem('campus_mastered', JSON.stringify([...mastered]));
+      showCard();
+    }
+
+    function speakText(text, e) {
+      if (e) e.stopPropagation();
+      if (!text) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-CN';
+      speechSynthesis.speak(u);
+    }
+
+    // --- TRANSLATOR - uses free MyMemory API ---
+    async function translatePhrase() {
+      const input = document.getElementById('englishInput').value.trim();
+      if (!input) { alert("type something first!"); return; }
+      const btn = document.getElementById('translateBtn');
+      btn.textContent = "Translating...";
+      try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=en|zh-CN`);
+        const data = await res.json();
+        const hanzi = data.responseData.translatedText || "";
+        latestTranslation = { hanzi, english: input };
+        document.getElementById('translatedHanzi').textContent = hanzi;
+        document.getElementById('pinyinInput').value = "";
+        document.getElementById('translationResult').classList.add('visible');
+      } catch (err) {
+        alert("translation failed - check internet and try again");
+      }
+      btn.textContent = "Translate";
+    }
+
+    // --- SAVE WITH DATE ---
+    function saveNewWord() {
+      if (!latestTranslation.hanzi) return;
+      const newWord = {
+        id: Date.now(),
+        category: "My Saved Words",
+        english: document.getElementById('englishInput').value.trim() || latestTranslation.english,
+        hanzi: latestTranslation.hanzi,
+        pinyin: document.getElementById('pinyinInput').value.trim() || "no pinyin yet",
+        date: getTodayLabel()
+      };
+      savedWords.push(newWord);
+      localStorage.setItem('campus_saved', JSON.stringify(savedWords));
+      renderSavedWords();
+      filterCards();
+      alert("saved! it will show under Today");
+    }
+
+    function deleteSavedWord(id) {
+      savedWords = savedWords.filter(w => w.id !== id);
+      localStorage.setItem('campus_saved', JSON.stringify(savedWords));
+      renderSavedWords();
+      filterCards();
+    }
+
+    function renderSavedWords() {
+      const container = document.getElementById('savedWordsContainer');
+      document.getElementById('savedCount').textContent = savedWords.length;
+      if (savedWords.length === 0) {
+        container.innerHTML = `<p style="font-size:0.85rem; color:var(--muted);">nothing saved yet - go learn something today!</p>`;
+        return;
+      }
+      // group by date
+      let grouped = {};
+      savedWords.forEach(w => {
+        const d = w.date || "Older";
+        if (!grouped[d]) grouped[d] = [];
+        grouped[d].push(w);
+      });
+      let html = "";
+      // newest day first - we reverse because we push in order
+      Object.keys(grouped).reverse().forEach(date => {
+        const isToday = date === getTodayLabel();
+        html += `<h4 style="margin:16px 0 8px; font-size:0.9rem;">${isToday ? "Today - " : ""}${date}</h4>`;
+        grouped[date].forEach(w => {
+          html += `<div class="saved-item"><div><b>${w.hanzi}</b> <span style="color:var(--muted); font-size:0.85rem;">${w.pinyin}</span><br><span style="font-size:0.85rem;">${w.english}</span></div><button class="delete-btn" onclick="deleteSavedWord(${w.id})">x</button></div>`;
+        });
+      });
+      container.innerHTML = html;
+    }
+
+    // init
+    renderSavedWords();
+    showCard();
+  </script>
+</body>
+  </html>
