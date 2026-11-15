@@ -9,7 +9,7 @@ I kept thinking, what if I actually get selected and I land in China and I can't
 So I started building this app to prepare myself. It's my survival kit before I even go.
 
 ### Live Demo
-[Click here to try it](https://gojosatoru3182-droid.github.io/campus-mandarin/)
+[Click here to try it] https://gojosatoru3182-droid.github.io/campus-mandrin/
 
 ### What it does
 
